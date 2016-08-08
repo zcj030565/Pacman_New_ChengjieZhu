@@ -1,4 +1,5 @@
 I Implemented DFS,BFS,Greedy Best First and MinMax for Pacman.
+
 Pacman_New_ChengjieZhu/src/main/java/entrants/pacman/chengjiezhu/
 
 DFS: Expand deepest unexpanded node Implementation: For DFS, fringe is a first-in-first-out (FIFO) queue.
