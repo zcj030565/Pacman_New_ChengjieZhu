@@ -1,4 +1,4 @@
-I Implemented DFS,BFS,Greedy Best First and MinMax for Pacman.
+I Implemented DFS,BFS,Greedy Best First and MiniMax for Pacman.
 
 Pacman_New_ChengjieZhu/src/main/java/entrants/pacman/chengjiezhu/
 
