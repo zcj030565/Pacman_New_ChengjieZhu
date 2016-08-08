@@ -9,10 +9,9 @@ Average Space complexity: O (V+E)
 Worst case Time complexity: O(bm) (Maximum tree depth = m) Worst case Space complexity: O(bm)
 
 BFS: Expand shallowest unexpanded node. Nodes wait in a queue to be explored. For BFS, fringe is a first-in-first-out (FIFO) queue. New successors go at end of the queue. Do not add parent of a node as a leaf
-
 Average Time complexity: BFS iterate over the |V| nodes, for at most |V| times. Since we have an upper bound of |E| edges in total in the graph, we will check at most |E| edges. At the end, we have O (|V|+|E|). Average Space complexity: O (V+E)
-
 Worst case Time complexity: O (bd+1) (b:Numbers, d:Depth) Worst case Space complexity: O (bd+1)
-Greedy Best First:Time complexityO(bm),Space complexityO(bm)
 
-MinMax:Time complexity: O (V+E) Space complexity: O (V+E)
+Greedy Best First:Time complexity O(bm) Space complexity:O(bm)
+
+MinMax:Time complexity: O(V+E) Space complexity: O(V+E)
