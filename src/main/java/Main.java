@@ -8,8 +8,9 @@ public class Main {
     public static void main(String[] args) {
         Executor executor = new Executor(false, true);
         //executor.runGameTimed(new DFS(), new POCommGhosts(50), true);
-        //executor.runGameTimed(new GreedyBestFirst(), new POCommGhosts(50), true);
+        executor.runGameTimed(new BestFirst(), new AggressiveGhosts(), true);
         //executor.runGameTimed(new BFS(), new POCommGhosts(50), true);
-        executor.runGameTimed(new Adversarial(), new AggressiveGhosts(), true);
+        //executor.runGameTimed(new Adversarial(), new POCommGhosts(50), true);
+        //executor.runGameTimed(new Adversarial(), new AggressiveGhosts(), true);
     }
 }

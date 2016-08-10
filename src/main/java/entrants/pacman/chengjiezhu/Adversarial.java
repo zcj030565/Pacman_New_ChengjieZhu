@@ -10,10 +10,10 @@ import java.util.*;
 
 public class Adversarial extends PacmanController{
     //Implement minmax serach
-	private static Queue<MOVE> possiblemove = new LinkedList<MOVE>(); 
 	//Saves possible moves
+	private static Queue<MOVE> possiblemove = new LinkedList<MOVE>();
+	private static final int maxdepth =2; 
     //An agent selects a move at each state by examining its alternatives via a state evaluation function.
-	private static final int maxdepth = 8;	
 	public static int getnearestactivepill(Game game) 
 	{
 	int[] activePills = game.getActivePillsIndices();
@@ -104,7 +104,7 @@ public class Adversarial extends PacmanController{
 		return mindis;
 	}
 		
-	public static double maxevaluation(gamestate pacmannode)
+	public static double evaluation(fullstate pacmannode)
 	{
 	double hvalue = 0;
 	double pilldistance = pacmannode.game.getDistance(pacmannode.game.getPacmanCurrentNodeIndex(), getnearestactivepill(pacmannode.game),DM.PATH);
@@ -114,158 +114,162 @@ public class Adversarial extends PacmanController{
 	pilldistance = 50000/(powerdistance+2);// Nearer Distance Better.Eating Power does more good
 	hvalue += powerdistance;
 	int eatdistance=getClosestEdibleGhost(pacmannode.game);
-	eatdistance = 100000/(eatdistance+2);//Nearer edible ghost Distance Better
+	eatdistance = 2000000/(eatdistance+2);//Nearer edible ghost Distance Better
 	hvalue += eatdistance;
 	double currentvalue = pacmannode.game.getScore();
 	currentvalue=currentvalue;
 	hvalue += currentvalue;
 	int ghostdistance = getNearestGhostDistance(pacmannode.game);
-	System.out.println(ghostdistance);
+	//System.out.println(ghostdistance);
 	if (ghostdistance==-1)//When Cannot find any ghost, default values is -1
 	{
-	hvalue += 125000;
+	hvalue += 12500;
 	}
 	else if (ghostdistance<50)//less than 50 means Pacman is dangerous
 	{
-	ghostdistance=2500*ghostdistance;
+	ghostdistance=250*ghostdistance;
     hvalue += ghostdistance;
 	}
 	else
 	{
-	hvalue += 125000;	
+	hvalue += 12500;	
 	}
-	//System.out.println(hvalue);
 	return hvalue;
 	}
 
-	public static double minevaluation(gamestate pacmannode)
-	{
-	double ghostdistance = getNearestGhostDistance(pacmannode.game);// Min value is best
-	return ghostdistance;
-	}
-
-	private static gamestate Adversarial(final gamestate pacmannode,int depth,boolean maxmin, GHOST g, gamestate best) 
+	private static fullstate Adversarial(final fullstate pacmannode,int depth,boolean maxmin, GHOST g, fullstate best) 
 	{
 		/*
 		 * pacmanmnode: Current pacman game state
 		 * depth: Maximum search depth available.
 		 * maxmin: show current player(maximizer or minimizer)
 		 * best: Best state to go
-		 */			
+		 * function minimax(node, depth, maximizingPlayer)
+			if depth = 0 or node is a terminal node
+			return the heuristic value of node
+			
+			if maximizingPlayer
+			bestValue := −∞
+			for each child of node
+			v := minimax(child, depth − 1, FALSE)
+			bestValue := max(bestValue, v)
+			return bestValue
+			
+			else    (* minimizing player *)
+			bestValue := +∞
+			for each child of node
+			v := minimax(child, depth − 1, TRUE)
+			bestValue := min(bestValue, v)
+			return bestValue*/
+		//System.out.println(depth);
+		if (depth == 0 || pacmannode.game.gameOver())
+		{	
+			best = pacmannode;
+			best.updatescore(evaluation(best));
+			return best;
+		    //if depth = 0 or node is a terminal node
+			//return the heuristic value of node
+		}
 		if (maxmin)
-		{
-		//maxmin=false;	
-		best=maxValue(pacmannode,depth,best); 
-        //System.out.println("A"+best.moves);
-        Adversarial(pacmannode,depth,false,g,best);
-        //System.out.println(depth);
-		//return max for pacman
-		}
-		else
-		{ 
-		//maxmin=true;	
-        //System.out.println("min");
-	    best= minValue(pacmannode,depth,g,best);
-        //System.out.println("B"+best.moves);
-		}
-		//maxmin=!maxmin;
-		return best;
-		}
+			{
+			double a = Integer.MIN_VALUE;
+			Stack<fullstate> next = pacmansuccessor(pacmannode);
+			GHOST[] ghosts = {GHOST.SUE,GHOST.BLINKY,GHOST.INKY,GHOST.PINKY};
+			GHOST nearghost=GHOST.SUE;	// An initial value
+		    for(GHOST ghost:ghosts)
+			{	
+				int minghostdis=Integer.MAX_VALUE;
+				int distance= (int)pacmannode.game.getDistance(pacmannode.game.getGhostCurrentNodeIndex(ghost), pacmannode.game.getPacmanCurrentNodeIndex(), DM.PATH);
+				if(distance<minghostdis)
+				{
+					minghostdis = distance;
+					nearghost=ghost;//Deal with nearest ghost
+				}
+					for(fullstate pacmans : next)
+					{
+					fullstate beststate = Adversarial(pacmans,depth-1,false,nearghost,best);
+						if(beststate.score > a)
+						{
+						a = beststate.score;
+						best=beststate;
+						}
+					}	
+			 }  
+			//return max for pacman
+			}
+		else{ 
+			double b = Integer.MAX_VALUE;
+			Stack<fullstate> next = ghostsuccessor(pacmannode,g);
+			for(fullstate ghosts : next)
+				{		
+				fullstate beststate = Adversarial(ghosts,depth-1,true,null,best);
+					if(beststate.score < b)
+					{
+		            b=beststate.score;
+					best=ghosts;
+					}
+				}
+			//return min for ghosts
+			}
+	//System.out.println(best.moves);	
+	return best;	
+	}
 
 	public MOVE getMove(Game game, long timeDue) {
 	    //Getting next move according to "current game state " then return the next move.
-		gamestate pacmannode = new gamestate(game, new LinkedList<MOVE>(),0);
-		GHOST[] ghosts = {GHOST.SUE,GHOST.BLINKY,GHOST.INKY,GHOST.PINKY};
-		for(GHOST g:ghosts)
-		{
-			gamestate solution = Adversarial(pacmannode, maxdepth, true, g, pacmannode);
-            //System.out.println(solution.moves);   
-			possiblemove = new LinkedList<MOVE>(solution.moves);
-		}		
+		int current = game.getPacmanCurrentNodeIndex();
+		fullstate pacmannode = new fullstate(game, new LinkedList<MOVE>(),0);
+		//GHOST[] ghosts = {GHOST.SUE,GHOST.BLINKY,GHOST.INKY,GHOST.PINKY};
+		//for(GHOST g:ghosts)		
+			fullstate solution = Adversarial(pacmannode, maxdepth, true, null, pacmannode);
+			possiblemove = new LinkedList<MOVE>(solution.moves);	
+            //System.out.println(possiblemove.size());   
         if  (possiblemove.size()>0)
 		    {
 		    	return possiblemove.poll();//Get a move to go
 		    }
-        else
-	         {
+		else{
 	        	 Random random = new Random();
 			 MOVE[] moves = game.getPossibleMoves(game.getPacmanCurrentNodeIndex(), game.getPacmanLastMoveMade());
 			 return moves[random.nextInt(moves.length)];
-			 }		
-	}
-          
-	private static gamestate maxValue(gamestate pacmannode,int depth,gamestate best)
-	{
-	double a = Integer.MIN_VALUE;
-	double most;
-	Stack<gamestate> next = pacmansuccessor(pacmannode);
-	for(gamestate pacmans : next)
-		{
-		most = maxevaluation(pacmans);//Best value
-		//System.out.println(most);
-			if(most >= a)
-			{
-			a = most;
-			best=pacmans;//Best State 
-			//System.out.println("a"+best.moves);
-			} 
-		}
-	return best;
-	}
+		     }
+	         		
+	}      
 	
-	private static gamestate minValue(gamestate pacmannode,int depth,GHOST g, gamestate best)
-	{
-	double b = Integer.MAX_VALUE;
-	double least;
-	Stack<gamestate> next = ghostsuccessor(pacmannode,g);
-	for(gamestate ghosts : next)
-		{		
-		least = minevaluation(ghosts); 
-			if(least <= b)
-			{
-			b = least;// Lowest value is best
-			//System.out.println(least);
-			best=ghosts;
-			}
-		}
-	return best;
-	}
-
-	private static Stack<gamestate> pacmansuccessor(gamestate pacmannew)
+	private static Stack<fullstate> pacmansuccessor(fullstate pacmannew)
 		{
-		    //Using last-in-first-out (LIFO) stack for latest gamestate first		
-		    Stack<gamestate> pacmansuccessors = new Stack<gamestate>();	
-			MOVE[] totalaction;
+		    //Using last-in-first-out (LIFO) stack for latest fullstate first		
+		    Stack<fullstate> pacmansuccessors = new Stack<fullstate>();	
+			MOVE[] totalaction;	
 			totalaction = pacmannew.game.getPossibleMoves(pacmannew.game.getPacmanCurrentNodeIndex(), pacmannew.game.getPacmanLastMoveMade()); 	
 			//Traverse all of moves from totalaction
 			for(int i=0;i<totalaction.length;i++)
 				{
-				gamestate successor = null;
-				Game middle = pacmannew.game.copy();//Middle State copy this gamestate
-				Queue<MOVE> pacmanmoves = new LinkedList<MOVE>(pacmannew.moves);
-				//System.out.println(pacmanmoves);
+				//System.out.println(pacmannew.depth);
+				fullstate successor = null;
+				Game middle = pacmannew.game.copy();//Middle State copy this fullstate
+				Queue<MOVE> pacmanmoves = new LinkedList<MOVE>();
 				middle.updatePacMan(totalaction[i]);//Update accroding to Move
 				middle.updateGame();
-				//Put moves of the gamestate into a Queue
+				//Put moves of the fullstate into a Queue
 				pacmanmoves.add(totalaction[i]);
 				//Create a new game state
-				successor = new gamestate(middle,pacmanmoves,pacmannew.depth+3);
-				pacmansuccessors.push(successor);
-				}	
-			//System.out.println(pacmansuccessors);
+				successor = new fullstate(middle,pacmanmoves,pacmannew.depth+1);
+				pacmansuccessors.push(successor);			
+				}
 			return pacmansuccessors;
 		}
 	
-    private static Stack<gamestate> ghostsuccessor(gamestate pacmangnode,GHOST g)
+    private static Stack<fullstate> ghostsuccessor(fullstate pacmangnode,GHOST g)
 	{
-    //Using last-in-first-out (LIFO) stack for dealing with latest gamestate first		
-    	Stack<gamestate> ghostsuccessors = new Stack<gamestate>();
-	gamestate ghostnext = null;
+    //Using last-in-first-out (LIFO) stack for dealing with latest fullstate first		
+    	Stack<fullstate> ghostsuccessors = new Stack<fullstate>();
+	fullstate ghostnext = null;
 	MOVE[] ghostaction;
 	ghostaction = pacmangnode.game.getPossibleMoves(pacmangnode.game.getGhostCurrentNodeIndex(g),pacmangnode.game.getGhostLastMoveMade(g)); 
-    //System.out.println(ghostaction);
 		for(int i=0;i<ghostaction.length;i++)				
 		{
+			//System.out.println(pacmangnode.depth);
 			Queue<MOVE> ghostmoves = new LinkedList<MOVE>(pacmangnode.moves);
 			Game middle = pacmangnode.game.copy();
 		    //HashMap gmoves = new HashMap();
@@ -275,15 +279,10 @@ public class Adversarial extends PacmanController{
 		    gmoves.put(g, ghostaction[i]);//Put object and value in map
 			middle.updateGhosts(gmoves);
 			middle.updateGame();
-			ghostnext = new gamestate(middle,ghostmoves,pacmangnode.depth +3 );
-			ghostsuccessors.push(ghostnext);
-			}
+			ghostnext = new fullstate(middle,ghostmoves,pacmangnode.depth+1);
+			ghostsuccessors.push(ghostnext);		
+		}
     //System.out.println(ghostsuccessors.size());   
 	return ghostsuccessors;
-	}
-	
-    
+	}   
 }
-
-
-

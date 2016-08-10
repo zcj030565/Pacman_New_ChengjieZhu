@@ -8,11 +8,9 @@ import pacman.game.Constants.MOVE;
 public class gamestate {
 	Game game;
 	Queue<MOVE> moves;
-	int depth;
-	public gamestate(Game game,Queue<MOVE> moves,int depth) 
+	public gamestate(Game game,Queue<MOVE> moves) 
 	{
 	this.game = game;
 	this.moves = moves;
-	this.depth=depth;
 	}
 }
