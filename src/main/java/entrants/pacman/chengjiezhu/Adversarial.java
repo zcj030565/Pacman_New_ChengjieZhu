@@ -9,7 +9,7 @@ import pacman.game.Game;
 import java.util.*;
 
 public class Adversarial extends PacmanController{
-    //Implement minmax serach
+        //Implement minmax serach
 	//Saves possible moves
 	private static Queue<MOVE> possiblemove = new LinkedList<MOVE>();
 	private static final int maxdepth =2; 
@@ -170,33 +170,21 @@ public class Adversarial extends PacmanController{
 		    //if depth = 0 or node is a terminal node
 			//return the heuristic value of node
 		}
-		if (maxmin)
-			{
+	if (maxmin) {
 			double a = Integer.MIN_VALUE;
 			Stack<fullstate> next = pacmansuccessor(pacmannode);
-			GHOST[] ghosts = {GHOST.SUE,GHOST.BLINKY,GHOST.INKY,GHOST.PINKY};
-			GHOST nearghost=GHOST.SUE;	// An initial value
-		    for(GHOST ghost:ghosts)
-			{	
-				int minghostdis=Integer.MAX_VALUE;
-				int distance= (int)pacmannode.game.getDistance(pacmannode.game.getGhostCurrentNodeIndex(ghost), pacmannode.game.getPacmanCurrentNodeIndex(), DM.PATH);
-				if(distance<minghostdis)
-				{
-					minghostdis = distance;
-					nearghost=ghost;//Deal with nearest ghost
-				}
-					for(fullstate pacmans : next)
-					{
-					fullstate beststate = Adversarial(pacmans,depth-1,false,nearghost,best);
-						if(beststate.score > a)
-						{
+			GHOST[] ghosts = { GHOST.SUE, GHOST.BLINKY, GHOST.INKY, GHOST.PINKY };
+			GHOST nearghost = GHOST.SUE; // Just an initial value
+			for (GHOST ghost : ghosts) {
+				for (fullstate pacmans : next) {
+					fullstate beststate = Adversarial(pacmans, depth - 1, false, ghost, best);
+					if (beststate.score > a) {
 						a = beststate.score;
-						best=beststate;
-						}
-					}	
-			 }  
-			//return max for pacman
+						best = beststate;
+					}
+				}
 			}
+		}
 		else{ 
 			double b = Integer.MAX_VALUE;
 			Stack<fullstate> next = ghostsuccessor(pacmannode,g);
